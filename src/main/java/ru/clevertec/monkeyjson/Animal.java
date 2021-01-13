@@ -1,11 +1,11 @@
-package ru.clevertec.jsonstringbuilder;
+package ru.clevertec.monkeyjson;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Animal {
 
-    private final String kind;
+    private String kind;
     private String name;
     private int age;
     private Animal mom;
@@ -15,7 +15,7 @@ public abstract class Animal {
     protected Animal(String name, int age, String kind) {
         this.name = name;
         this.age = age;
-        this.kind = kind;
+        setKind(kind);
     }
 
     public String getName() {
@@ -36,6 +36,10 @@ public abstract class Animal {
 
     public String getKind() {
         return kind;
+    }
+
+    private void setKind(String kind) {
+        this.kind = kind;
     }
 
     public Animal getMom() {

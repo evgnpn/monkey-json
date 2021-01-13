@@ -2,7 +2,7 @@ plugins {
     id 'application'
 }
 
-group 'ru.clevertec.jsonstringbuilder'
+group 'ru.clevertec.monkeyjson'
 version '1.0'
 
 repositories {
@@ -17,7 +17,7 @@ dependencies {
 }
 
 application {
-    mainClass = 'ru.clevertec.jsonstringbuilder.Main'
+    mainClass = 'ru.clevertec.monkeyjson.Main'
 }
 
 test {

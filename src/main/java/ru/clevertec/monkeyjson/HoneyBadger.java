@@ -1,6 +1,6 @@
-package ru.clevertec.jsonstringbuilder;
+package ru.clevertec.monkeyjson;
 
-public class HoneyBadger extends Animal {
+public class HoneyBadger extends ru.clevertec.monkeyjson.Animal {
 
     private boolean lovesHoney;
 
