@@ -8,7 +8,13 @@ import java.util.*;
 
 public abstract class MonkeyJSON {
 
-    public static String toJsonString(Object obj) throws InvocationTargetException, IllegalAccessException {
+    public static String toJsonString(Object obj)
+            throws InvocationTargetException, IllegalAccessException {
+        return toJsonString(obj, false);
+    }
+
+    public static String toJsonString(Object obj, boolean isFormatted)
+            throws InvocationTargetException, IllegalAccessException {
 
         var sb = new StringBuilder();
 
@@ -17,17 +23,17 @@ public abstract class MonkeyJSON {
         }
 
         if (obj instanceof Collection) {
-            appendArray(sb, 0, false, obj);
+            appendArray(sb, 0, false, obj, isFormatted);
         }
         else {
-            appendObject(sb, 0, false, false, obj);
+            appendObject(sb, 0, false, false, obj, isFormatted);
         }
 
         return sb.toString();
     }
 
     protected static void appendObject(StringBuilder sb, int deep,
-                                       boolean isAssignable, boolean commaInTheEnd, Object obj)
+                                       boolean isAssignable, boolean commaInTheEnd, Object obj, boolean isFormatted)
             throws InvocationTargetException, IllegalAccessException {
 
         if (obj == null) {
@@ -35,51 +41,71 @@ public abstract class MonkeyJSON {
             if (commaInTheEnd) {
                 sb.append(',');
             }
-            sb.append('\n');
+            if (isFormatted) {
+                sb.append('\n');
+            }
             return;
         }
 
         if (!isAssignable) {
-            appendTabs(sb, deep);
+            if (isFormatted) {
+                appendTabs(sb, deep);
+            }
         }
 
-        sb.append('{').append('\n');
+        sb.append('{');
+
+        if (isFormatted) {
+            sb.append('\n');
+        }
 
         var i = 0;
         var pairs = getJsonKeyValuePairs(obj);
 
         for (var kv : pairs) {
 
-            appendKey(sb, kv.getKey(), deep + 1);
+            appendKey(sb, kv.getKey(), deep + 1, isFormatted);
 
             if (kv.getValue() instanceof Constable) {
-                appendValue(sb, kv.getValue(), true, i + 1 != pairs.size());
+                appendValue(sb, kv.getValue(), true, i + 1 != pairs.size(), isFormatted);
             }
             else if (kv.getValue() instanceof Collection) {
-                appendArray(sb, deep + 1, i + 1 != pairs.size(), kv.getValue());
+                appendArray(sb, deep + 1, i + 1 != pairs.size(), kv.getValue(), isFormatted);
             }
             else {
-                appendObject(sb, deep + 1, true, i + 1 != pairs.size(), kv.getValue());
+                appendObject(sb, deep + 1, true, i + 1 != pairs.size(), kv.getValue(), isFormatted);
             }
 
             i++;
         }
 
-        appendTabs(sb, deep);
+        if (isFormatted) {
+            appendTabs(sb, deep);
+        }
 
         sb.append('}');
+
         if (commaInTheEnd) {
             sb.append(',');
         }
-        sb.append('\n');
+
+        if (isFormatted) {
+            sb.append('\n');
+        }
     }
 
-    protected static void appendKey(StringBuilder sb, String key, int deep) {
-        appendTabs(sb, deep);
-        sb.append('"').append(key).append('"').append(": ");
+    protected static void appendKey(StringBuilder sb, String key, int deep, boolean isFormatted) {
+        if (isFormatted) {
+            appendTabs(sb, deep);
+        }
+        sb.append('"').append(key).append('"').append(':');
+        if (isFormatted) {
+            sb.append(' ');
+        }
     }
 
-    protected static void appendValue(StringBuilder sb, Object value, boolean quoted, boolean commaInTheEnd) {
+    protected static void appendValue(StringBuilder sb, Object value,
+                                      boolean quoted, boolean commaInTheEnd, boolean isFormatted) {
         if (quoted) {
             sb.append('"').append(value).append('"');
         } else {
@@ -88,10 +114,12 @@ public abstract class MonkeyJSON {
         if (commaInTheEnd) {
             sb.append(',');
         }
-        sb.append('\n');
+        if (isFormatted) {
+            sb.append('\n');
+        }
     }
 
-    private static void appendArray(StringBuilder sb, int deep, boolean commaInTheEnd, Object arrayObj)
+    private static void appendArray(StringBuilder sb, int deep, boolean commaInTheEnd, Object arrayObj, boolean isFormatted)
             throws InvocationTargetException, IllegalAccessException {
 
         var array = (Collection<?>)arrayObj;
@@ -100,15 +128,21 @@ public abstract class MonkeyJSON {
         } else if (array.isEmpty()) {
             sb.append("[]");
         } else {
-            sb.append('[').append('\n');
+            sb.append('[');
+
+            if (isFormatted) {
+                sb.append('\n');
+            }
 
             var i = 0;
             for (var arrItem : array) {
-                appendObject(sb, deep + 1,false, i + 1 < array.size(), arrItem);
+                appendObject(sb, deep + 1,false, i + 1 < array.size(), arrItem, isFormatted);
                 i++;
             }
 
-            appendTabs(sb, deep);
+            if (isFormatted) {
+                appendTabs(sb, deep);
+            }
             sb.append(']');
         }
 
@@ -116,7 +150,9 @@ public abstract class MonkeyJSON {
             sb.append(',');
         }
 
-        sb.append('\n');
+        if (isFormatted) {
+            sb.append('\n');
+        }
     }
 
     private static void appendTabs(StringBuilder sb, int count) {

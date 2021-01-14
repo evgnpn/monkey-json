@@ -37,5 +37,4 @@ public class Tests {
         }
         return valid;
     }
-
 }
