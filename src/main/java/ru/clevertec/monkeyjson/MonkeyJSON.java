@@ -19,10 +19,9 @@ public abstract class MonkeyJSON {
         var sb = new StringBuilder();
 
         if (obj instanceof Constable) {
-            throw new IllegalArgumentException("Constable value cannot be presented as JSON");
+            appendValue(sb, obj, true, false, isFormatted);
         }
-
-        if (isArray(obj)) {
+        else if (isArray(obj)) {
             appendArray(sb, 0, false, getArray(obj), isFormatted);
         }
         else {
@@ -150,6 +149,9 @@ public abstract class MonkeyJSON {
                                 }
                             }, isFormatted);
                 }
+                else if (isArray(arrItem)) {
+                    appendArray(sb, deep + 1, comma, getArray(arrItem), isFormatted);
+                }
                 else {
                     appendObject(sb, deep + 1, false, comma, arrItem, isFormatted);
                 }
@@ -210,9 +212,8 @@ public abstract class MonkeyJSON {
                 if (method.getName().matches("^get[A-Z].*") &&
                         !method.getReturnType().equals(void.class))
                     return true;
-                if (method.getName().matches("^is[A-Z].*") &&
-                        method.getReturnType().equals(boolean.class))
-                    return true;
+                return method.getName().matches("^is[A-Z].*") &&
+                        method.getReturnType().equals(boolean.class);
             }
         }
         return false;
