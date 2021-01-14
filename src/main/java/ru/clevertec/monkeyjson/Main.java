@@ -16,6 +16,6 @@ public class Main {
         honeyBadger.getCubs().add(new HoneyBadger("Rebenok2 Sokrushitelya", 2));
         honeyBadger.getCubs().add(new HoneyBadger("Rebenok3 Sokrushitelya", 1));
 
-        System.out.println(MonkeyJSON.toJsonString(honeyBadger, false));
+        System.out.println(MonkeyJSON.toJsonString(honeyBadger, true));
     }
 }

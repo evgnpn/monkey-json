@@ -64,16 +64,18 @@ public abstract class MonkeyJSON {
 
         for (var kv : pairs) {
 
+            var comma = i + 1 != pairs.size();
+
             appendKey(sb, kv.getKey(), deep + 1, isFormatted);
 
             if (kv.getValue() instanceof Constable) {
-                appendValue(sb, kv.getValue(), true, i + 1 != pairs.size(), isFormatted);
+                appendValue(sb, kv.getValue(), true, comma, isFormatted);
             }
             else if (kv.getValue() instanceof Collection) {
-                appendArray(sb, deep + 1, i + 1 != pairs.size(), kv.getValue(), isFormatted);
+                appendArray(sb, deep + 1, comma, kv.getValue(), isFormatted);
             }
             else {
-                appendObject(sb, deep + 1, true, i + 1 != pairs.size(), kv.getValue(), isFormatted);
+                appendObject(sb, deep + 1, true, comma, kv.getValue(), isFormatted);
             }
 
             i++;
@@ -119,7 +121,8 @@ public abstract class MonkeyJSON {
         }
     }
 
-    private static void appendArray(StringBuilder sb, int deep, boolean commaInTheEnd, Object arrayObj, boolean isFormatted)
+    private static void appendArray(StringBuilder sb, int deep,
+                                    boolean commaInTheEnd, Object arrayObj, boolean isFormatted)
             throws InvocationTargetException, IllegalAccessException {
 
         var array = (Collection<?>)arrayObj;
@@ -136,7 +139,22 @@ public abstract class MonkeyJSON {
 
             var i = 0;
             for (var arrItem : array) {
-                appendObject(sb, deep + 1,false, i + 1 < array.size(), arrItem, isFormatted);
+
+                var comma = i + 1 < array.size();
+
+                if (arrItem instanceof Constable) {
+                    appendObject(sb, deep + 1, false, comma,
+                            new Object() {
+                                private final Object value = arrItem;
+                                public Object getValue() {
+                                    return value;
+                                }
+                            }, isFormatted);
+                }
+                else {
+                    appendObject(sb, deep + 1, false, comma, arrItem, isFormatted);
+                }
+
                 i++;
             }
 
@@ -170,7 +188,10 @@ public abstract class MonkeyJSON {
         {
             for (var method : c.getDeclaredMethods()) {
                 if (isGetter(method)) {
-                    list.add(new AbstractMap.SimpleEntry<>(normalizeKey(method.getName()), method.invoke(obj)));
+                    var methodName = normalizeKey(method.getName());
+                    var methodResult = method.invoke(obj);
+
+                    list.add(new AbstractMap.SimpleEntry<>(methodName, methodResult));
                 }
             }
         }
