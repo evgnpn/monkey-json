@@ -3,5 +3,5 @@
 Simple Object to JSON string converter.
 
 Supports:
-- Nested values
-- Arrays (only ``Collection`` types)
+- Nested properties
+- Arrays (Native arrays and ``Collection`` types)

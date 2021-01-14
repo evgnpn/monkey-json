@@ -22,8 +22,8 @@ public abstract class MonkeyJSON {
             throw new IllegalArgumentException("Constable value cannot be presented as JSON");
         }
 
-        if (obj instanceof Collection) {
-            appendArray(sb, 0, false, obj, isFormatted);
+        if (isArray(obj)) {
+            appendArray(sb, 0, false, getArray(obj), isFormatted);
         }
         else {
             appendObject(sb, 0, false, false, obj, isFormatted);
@@ -71,8 +71,8 @@ public abstract class MonkeyJSON {
             if (kv.getValue() instanceof Constable) {
                 appendValue(sb, kv.getValue(), true, comma, isFormatted);
             }
-            else if (kv.getValue() instanceof Collection) {
-                appendArray(sb, deep + 1, comma, kv.getValue(), isFormatted);
+            else if (isArray(kv.getValue())) {
+                appendArray(sb, deep + 1, comma, getArray(kv.getValue()), isFormatted);
             }
             else {
                 appendObject(sb, deep + 1, true, comma, kv.getValue(), isFormatted);
@@ -122,13 +122,12 @@ public abstract class MonkeyJSON {
     }
 
     private static void appendArray(StringBuilder sb, int deep,
-                                    boolean commaInTheEnd, Object arrayObj, boolean isFormatted)
+                                    boolean commaInTheEnd, Object[] array, boolean isFormatted)
             throws InvocationTargetException, IllegalAccessException {
 
-        var array = (Collection<?>)arrayObj;
-        if (arrayObj == null) {
+        if (array == null) {
             sb.append("null");
-        } else if (array.isEmpty()) {
+        } else if (array.length == 0) {
             sb.append("[]");
         } else {
             sb.append('[');
@@ -140,7 +139,7 @@ public abstract class MonkeyJSON {
             var i = 0;
             for (var arrItem : array) {
 
-                var comma = i + 1 < array.size();
+                var comma = i + 1 < array.length;
 
                 if (arrItem instanceof Constable) {
                     appendObject(sb, deep + 1, false, comma,
@@ -229,5 +228,19 @@ public abstract class MonkeyJSON {
         }
 
         return key.substring(0, 1).toLowerCase() + key.substring(1);
+    }
+
+    private static boolean isArray(Object o) {
+        return o != null && (o.getClass().isArray() || o instanceof Collection);
+    }
+
+    private static Object[] getArray(Object o) {
+        if (o instanceof Collection) {
+            return ((Collection<?>)o).toArray();
+        }
+        if (o.getClass().isArray()) {
+            return (Object[])o;
+        }
+        throw new IllegalArgumentException("Not supported type");
     }
 }
