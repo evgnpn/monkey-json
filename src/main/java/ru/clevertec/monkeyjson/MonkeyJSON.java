@@ -187,9 +187,14 @@ public abstract class MonkeyJSON {
         {
             for (var method : c.getDeclaredMethods()) {
                 if (isGetter(method)) {
+
+                    var ignoreAnnotation = method.getAnnotation(MonkeyIgnore.class);
+                    if (ignoreAnnotation != null && ignoreAnnotation.value()) {
+                        continue;
+                    }
+
                     var methodName = normalizeKey(method.getName());
                     var methodResult = method.invoke(obj);
-
                     list.add(new AbstractMap.SimpleEntry<>(methodName, methodResult));
                 }
             }
