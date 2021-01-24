@@ -1,9 +1,10 @@
 plugins {
-    id 'application'
+    id 'java'
 }
 
-group 'ru.clevertec.monkeyjson'
+group 'ru.clevertec.normalino'
 version '1.0'
+description 'ru.clevertec.normalino.json'
 
 repositories {
     mavenCentral()
@@ -14,10 +15,6 @@ dependencies {
     testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.11.3'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-}
-
-application {
-    mainClass = 'ru.clevertec.monkeyjson.Main'
 }
 
 test {

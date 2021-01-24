@@ -1,4 +1,4 @@
-package ru.clevertec.monkeyjson;
+package ru.clevertec.normalino.json.animal;
 
 import java.util.ArrayList;
 import java.util.List;

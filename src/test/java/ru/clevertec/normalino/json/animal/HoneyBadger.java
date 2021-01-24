@@ -1,4 +1,4 @@
-package ru.clevertec.monkeyjson;
+package ru.clevertec.normalino.json.animal;
 
 public class HoneyBadger extends Animal {
 

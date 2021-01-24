@@ -1,4 +1,4 @@
-package ru.clevertec.monkeyjson;
+package ru.clevertec.normalino.json;
 
 import java.lang.constant.Constable;
 import java.lang.reflect.InvocationTargetException;
@@ -6,33 +6,31 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-public abstract class MonkeyJSON {
+public abstract class NormalinoJSON {
 
-    public static String toJsonString(Object obj)
+    public static String stringify(Object obj)
             throws InvocationTargetException, IllegalAccessException {
-        return toJsonString(obj, false);
+        return stringify(obj, false);
     }
 
-    public static String toJsonString(Object obj, boolean isFormatted)
+    public static String stringify(Object obj, boolean formatted)
             throws InvocationTargetException, IllegalAccessException {
 
         var sb = new StringBuilder();
 
         if (obj instanceof Constable) {
-            appendValue(sb, obj, true, false, isFormatted);
-        }
-        else if (isArray(obj)) {
-            appendArray(sb, 0, false, getArray(obj), isFormatted);
-        }
-        else {
-            appendObject(sb, 0, false, false, obj, isFormatted);
+            appendValue(sb, obj, true, false, formatted);
+        } else if (isArray(obj)) {
+            appendArray(sb, 0, false, getArray(obj), formatted);
+        } else {
+            appendObject(sb, 0, false, false, obj, formatted);
         }
 
         return sb.toString();
     }
 
     protected static void appendObject(StringBuilder sb, int deep,
-                                       boolean isAssignable, boolean commaInTheEnd, Object obj, boolean isFormatted)
+                                       boolean isAssignable, boolean commaInTheEnd, Object obj, boolean formatted)
             throws InvocationTargetException, IllegalAccessException {
 
         if (obj == null) {
@@ -40,21 +38,21 @@ public abstract class MonkeyJSON {
             if (commaInTheEnd) {
                 sb.append(',');
             }
-            if (isFormatted) {
+            if (formatted) {
                 sb.append('\n');
             }
             return;
         }
 
         if (!isAssignable) {
-            if (isFormatted) {
+            if (formatted) {
                 appendTabs(sb, deep);
             }
         }
 
         sb.append('{');
 
-        if (isFormatted) {
+        if (formatted) {
             sb.append('\n');
         }
 
@@ -65,22 +63,20 @@ public abstract class MonkeyJSON {
 
             var comma = i + 1 != pairs.size();
 
-            appendKey(sb, kv.getKey(), deep + 1, isFormatted);
+            appendKey(sb, kv.getKey(), deep + 1, formatted);
 
             if (kv.getValue() instanceof Constable) {
-                appendValue(sb, kv.getValue(), true, comma, isFormatted);
-            }
-            else if (isArray(kv.getValue())) {
-                appendArray(sb, deep + 1, comma, getArray(kv.getValue()), isFormatted);
-            }
-            else {
-                appendObject(sb, deep + 1, true, comma, kv.getValue(), isFormatted);
+                appendValue(sb, kv.getValue(), true, comma, formatted);
+            } else if (isArray(kv.getValue())) {
+                appendArray(sb, deep + 1, comma, getArray(kv.getValue()), formatted);
+            } else {
+                appendObject(sb, deep + 1, true, comma, kv.getValue(), formatted);
             }
 
             i++;
         }
 
-        if (isFormatted) {
+        if (formatted) {
             appendTabs(sb, deep);
         }
 
@@ -90,7 +86,7 @@ public abstract class MonkeyJSON {
             sb.append(',');
         }
 
-        if (isFormatted) {
+        if (formatted) {
             sb.append('\n');
         }
     }
@@ -144,15 +140,14 @@ public abstract class MonkeyJSON {
                     appendObject(sb, deep + 1, false, comma,
                             new Object() {
                                 private final Object value = arrItem;
+
                                 public Object getValue() {
                                     return value;
                                 }
                             }, isFormatted);
-                }
-                else if (isArray(arrItem)) {
+                } else if (isArray(arrItem)) {
                     appendArray(sb, deep + 1, comma, getArray(arrItem), isFormatted);
-                }
-                else {
+                } else {
                     appendObject(sb, deep + 1, false, comma, arrItem, isFormatted);
                 }
 
@@ -185,12 +180,11 @@ public abstract class MonkeyJSON {
 
         var list = new ArrayList<Map.Entry<String, Object>>();
 
-        for (Class<?> c = obj.getClass(); c != null; c = c.getSuperclass())
-        {
+        for (Class<?> c = obj.getClass(); c != null; c = c.getSuperclass()) {
             for (var method : c.getDeclaredMethods()) {
                 if (isGetter(method)) {
 
-                    var ignoreAnnotation = method.getAnnotation(MonkeyIgnore.class);
+                    var ignoreAnnotation = method.getAnnotation(NormalinoIgnore.class);
                     if (ignoreAnnotation != null && ignoreAnnotation.value()) {
                         continue;
                     }
@@ -237,16 +231,60 @@ public abstract class MonkeyJSON {
     }
 
     private static boolean isArray(Object o) {
-        return o != null && (o.getClass().isArray() || o instanceof Collection);
+        return o != null && (o.getClass().isArray() || o instanceof Iterable);
     }
 
     private static Object[] getArray(Object o) {
-        if (o instanceof Collection) {
-            return ((Collection<?>)o).toArray();
+        if (o instanceof Iterable) {
+            return iterableToObjects(o);
         }
         if (o.getClass().isArray()) {
-            return (Object[])o;
+            return arrayToObjects(o);
         }
         throw new IllegalArgumentException("Not supported type");
+    }
+
+    private static Object[] arrayToObjects(Object o) {
+
+        var arr = new ArrayList<>();
+
+        if (byte[].class.arrayType().equals(o.getClass().arrayType())) {
+            for (var b : ((byte[]) o)) arr.add(b);
+        } else if (short[].class.arrayType().equals(o.getClass().arrayType())) {
+            for (var b : ((short[]) o)) arr.add(b);
+        } else if (int[].class.arrayType().equals(o.getClass().arrayType())) {
+            for (var b : ((int[]) o)) arr.add(b);
+        } else if (long[].class.arrayType().equals(o.getClass().arrayType())) {
+            for (var b : ((long[]) o)) arr.add(b);
+        } else if (float[].class.arrayType().equals(o.getClass().arrayType())) {
+            for (var b : ((float[]) o)) arr.add(b);
+        } else if (double[].class.arrayType().equals(o.getClass().arrayType())) {
+            for (var b : ((double[]) o)) arr.add(b);
+        } else if (char[].class.arrayType().equals(o.getClass().arrayType())) {
+            for (var b : ((char[]) o)) arr.add(b);
+        } else if (String[].class.arrayType().equals(o.getClass().arrayType())) {
+            for (var b : ((String[]) o)) arr.add(b);
+        } else if (boolean[].class.arrayType().equals(o.getClass().arrayType())) {
+            for (var b : ((boolean[]) o)) arr.add(b);
+        }
+
+        return arr.toArray();
+    }
+
+    private static Object[] iterableToObjects(Object o) {
+
+        if (o instanceof Collection) {
+            return ((Collection<?>) o).toArray();
+        } else if (o instanceof Iterable) {
+
+            var array = new ArrayList<>();
+
+            for (Object value : (Iterable<?>) o) {
+                array.add(value);
+            }
+            return array.toArray();
+        }
+
+        throw new IllegalArgumentException("Not supported array type");
     }
 }
